@@ -147,6 +147,6 @@ The living [product and release plan](docs/PLAN.md) tracks completed work, devic
 
 ## Author
 
-Created by **Diyath Wickramaratne** under **diyathw**.
+Created by independent app developer **Diyath Wickramaratne**. Developer handle and product brand: **diyathw**.
 
-Copyright © 2026 diyathw (Diyath Wickramaratne).
+Copyright © 2026 Diyath Wickramaratne.

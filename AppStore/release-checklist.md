@@ -2,7 +2,7 @@
 
 ## Developer account
 
-- [ ] Enroll the publishing legal entity in the Apple Developer Program.
+- [ ] Enroll Diyath Wickramaratne in the Apple Developer Program as an individual.
 - [ ] Accept current agreements in App Store Connect.
 - [ ] Create/confirm App IDs `com.tiloq.app` and `com.tiloq.app.keyboard`.
 - [ ] Create/confirm App Group `group.com.tiloq.app` and enable it for both identifiers.
@@ -10,7 +10,7 @@
 
 ## Store record
 
-- [ ] Create the app record with the name TILOQ and bundle ID `com.tiloq.app`.
+- [ ] Create the app record with the name TILOQ and bundle ID `com.tiloq.app`; the seller/developer name will be Diyath Wickramaratne.
 - [ ] Paste and proofread `metadata.md`.
 - [ ] Replace every bracketed placeholder.
 - [ ] Host `privacy-policy.html` at a public HTTPS URL.

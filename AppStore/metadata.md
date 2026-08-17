@@ -7,7 +7,7 @@
 - Primary category: Productivity
 - Secondary category: Utilities
 - Version: 1.0
-- Copyright: 2026 diyathw (Diyath Wickramaratne)
+- Copyright: 2026 Diyath Wickramaratne
 
 ## Promotional text
 

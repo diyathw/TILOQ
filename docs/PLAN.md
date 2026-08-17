@@ -85,7 +85,7 @@ Exit criteria:
 
 Goal: make the project upload-ready without placeholders.
 
-- [ ] Confirm Apple Developer Program enrollment and current agreements
+- [ ] Confirm individual Apple Developer Program enrollment for Diyath Wickramaratne and accept current agreements
 - [ ] Register or verify both App IDs and the shared App Group
 - [ ] Create an Apple Distribution certificate
 - [ ] Create App Store provisioning profiles for the app and keyboard extension
