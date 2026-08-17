@@ -102,6 +102,7 @@ Do not claim device verification unless the build was installed and the relevant
 ## Documentation and App Store readiness
 
 - Keep `README.md` accurate when requirements, setup, architecture, or major features change.
+- Keep `docs/PLAN.md` synchronized with completed milestones, release blockers, and approved scope changes.
 - Keep `AppStore/metadata.md`, `review-notes.md`, `privacy.md`, `privacy-policy.html`, and `release-checklist.md` synchronized with shipping behavior.
 - Do not invent public URLs, support contacts, legal classifications, or App Store answers. Leave an explicit placeholder or report the blocker.
 - Do not set export-compliance flags without confirming the correct classification for the encryption implementation.

@@ -143,6 +143,8 @@ Submission material is maintained in [`AppStore/`](AppStore/):
 
 Before submitting, provide public Privacy Policy and Support URLs, complete Apple's encryption export-compliance questionnaire, capture final screenshots, and archive with Apple Distribution signing.
 
+The living [product and release plan](docs/PLAN.md) tracks completed work, device hardening, App Store setup, TestFlight, submission, and post-launch priorities.
+
 ## Author
 
 Created by **Diyath Wickramaratne** under **diyathw**.
