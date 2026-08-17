@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+
+# Xcode user state and build products
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# Signing and local configuration
+*.pem
+*.p12
+*.mobileprovision
+.env*
+
+# Legacy non-iOS hosting metadata
+.openai/
+
+# Generated archives and exports
+*.xcarchive
+*.ipa
+*.dSYM
