@@ -16,7 +16,7 @@
 		A10000000000000000000007 /* TypeTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000003 /* TypeTheme.swift */; };
 		A10000000000000000000008 /* TypeKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000004 /* TypeKeyboardView.swift */; };
 		A10000000000000000000009 /* LocalAIEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000005 /* LocalAIEngine.swift */; };
-		A1000000000000000000000A /* TypeKeyboard.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = B10000000000000000000008 /* TypeKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A1000000000000000000000A /* TiloqKeyboard.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = B10000000000000000000008 /* TiloqKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A1000000000000000000000B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000A /* Assets.xcassets */; };
 		A1000000000000000000000C /* LocalAIRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000B /* LocalAIRequestTests.swift */; };
 		A1000000000000000000000D /* TypeCopyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000C /* TypeCopyTests.swift */; };
@@ -75,7 +75,7 @@
 			containerPortal = D10000000000000000000001 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = E10000000000000000000002;
-			remoteInfo = TypeKeyboard;
+			remoteInfo = TiloqKeyboard;
 		};
 		C10000000000000000000003 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -93,7 +93,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				A1000000000000000000000A /* TypeKeyboard.appex in Embed App Extensions */,
+				A1000000000000000000000A /* TiloqKeyboard.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -108,7 +108,7 @@
 		B10000000000000000000005 /* LocalAIEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAIEngine.swift; sourceTree = "<group>"; };
 		B10000000000000000000006 /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardViewController.swift; sourceTree = "<group>"; };
 		B10000000000000000000007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		B10000000000000000000008 /* TypeKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TypeKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10000000000000000000008 /* TiloqKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TiloqKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B10000000000000000000009 /* Tiloq.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tiloq.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1000000000000000000000A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B1000000000000000000000B /* LocalAIRequestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAIRequestTests.swift; sourceTree = "<group>"; };
@@ -244,7 +244,7 @@
 			isa = PBXGroup;
 			children = (
 				B10000000000000000000009 /* Tiloq.app */,
-				B10000000000000000000008 /* TypeKeyboard.appex */,
+				B10000000000000000000008 /* TiloqKeyboard.appex */,
 				B1000000000000000000000D /* TiloqTests.xctest */,
 			);
 			name = Products;
@@ -284,9 +284,9 @@
 			productReference = B10000000000000000000009 /* Tiloq.app */;
 			productType = "com.apple.product-type.application";
 		};
-		E10000000000000000000002 /* TypeKeyboard */ = {
+		E10000000000000000000002 /* TiloqKeyboard */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = G10000000000000000000003 /* Build configuration list for PBXNativeTarget "TypeKeyboard" */;
+			buildConfigurationList = G10000000000000000000003 /* Build configuration list for PBXNativeTarget "TiloqKeyboard" */;
 			buildPhases = (
 				F10000000000000000000005 /* Sources */,
 				F10000000000000000000006 /* Frameworks */,
@@ -296,9 +296,9 @@
 			);
 			dependencies = (
 			);
-			name = TypeKeyboard;
-			productName = TypeKeyboard;
-			productReference = B10000000000000000000008 /* TypeKeyboard.appex */;
+			name = TiloqKeyboard;
+			productName = TiloqKeyboard;
+			productReference = B10000000000000000000008 /* TiloqKeyboard.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 		E10000000000000000000003 /* TiloqTests */ = {
@@ -365,7 +365,7 @@
 			projectRoot = "";
 			targets = (
 				E10000000000000000000001 /* TiloqApp */,
-				E10000000000000000000002 /* TypeKeyboard */,
+				E10000000000000000000002 /* TiloqKeyboard */,
 				E10000000000000000000003 /* TiloqTests */,
 			);
 		};
@@ -481,7 +481,7 @@
 /* Begin PBXTargetDependency section */
 		C10000000000000000000002 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = E10000000000000000000002 /* TypeKeyboard */;
+			target = E10000000000000000000002 /* TiloqKeyboard */;
 			targetProxy = C10000000000000000000001 /* PBXContainerItemProxy */;
 		};
 		C10000000000000000000004 /* PBXTargetDependency */ = {
@@ -571,7 +571,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tiloq.app.keyboard;
-				PRODUCT_NAME = TypeKeyboard;
+				PRODUCT_NAME = TiloqKeyboard;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -591,7 +591,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tiloq.app.keyboard;
-				PRODUCT_NAME = TypeKeyboard;
+				PRODUCT_NAME = TiloqKeyboard;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -649,7 +649,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		G10000000000000000000003 /* Build configuration list for PBXNativeTarget "TypeKeyboard" */ = {
+		G10000000000000000000003 /* Build configuration list for PBXNativeTarget "TiloqKeyboard" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				H10000000000000000000005 /* Debug */,

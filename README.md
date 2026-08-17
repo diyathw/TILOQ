@@ -48,7 +48,7 @@ Typing and encryption remain available when Apple Intelligence is unavailable. T
 
 1. Open `Tiloq.xcodeproj` in Xcode.
 2. Select the **TiloqApp** scheme.
-3. Set your development team for both **TiloqApp** and **TypeKeyboard**.
+3. Set your development team for both **TiloqApp** and **TiloqKeyboard**.
 4. Confirm that both targets use the same App Group entitlement.
 5. Build and run TILOQ on an iPhone.
 

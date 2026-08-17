@@ -93,9 +93,9 @@ Do not claim device verification unless the build was installed and the relevant
 ## Xcode project maintenance
 
 - When adding or moving source/resource files, update `Tiloq.xcodeproj/project.pbxproj` and the correct target membership.
-- Shared keyboard files generally compile into both `TiloqApp` and `TypeKeyboard`; confirm membership deliberately.
+- Shared keyboard files generally compile into both `TiloqApp` and `TiloqKeyboard`; confirm membership deliberately.
 - App-only settings, setup, and decryption views belong to `TiloqApp` only.
-- Extension metadata and its privacy manifest belong to `TypeKeyboard` only.
+- Extension metadata and its privacy manifest belong to `TiloqKeyboard` only.
 - Validate edited plist, entitlement, and privacy-manifest files with `plutil -lint`.
 - Keep Xcode user state and generated build products untracked.
 
