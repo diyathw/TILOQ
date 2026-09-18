@@ -123,7 +123,7 @@ private struct SettingsView: View {
     private var isPlusSubscriber = false
     #if DEBUG
     @AppStorage(TiloqSettings.debugForcePlusKey, store: TiloqSettings.sharedDefaults)
-    private var debugForcePlus = false
+    private var debugForcePlus = true
     #endif
     @State private var showsPaywall = false
 
@@ -203,7 +203,8 @@ private struct SettingsView: View {
                 }
                 #if DEBUG
                 Divider().padding(.leading, 16)
-                Toggle("Debug: Force Plus Unlocked", isOn: $debugForcePlus)
+                Toggle("Debug: Plus Unlocked", isOn: $debugForcePlus)
+                    .accessibilityHint("Debug builds are unlocked by default. Turn this off to preview the locked, free experience.")
                 #endif
             }
 

@@ -23,12 +23,28 @@ enum TiloqSettings {
     static let debugForcePlusKey = "debugForcePlusUnlocked"
     static let plusAnnualProductID = "com.tiloq.app.plus.annual"
 
-    static func hasPlusAccess(in defaults: UserDefaults = sharedDefaults) -> Bool {
-        #if DEBUG
-        if defaults.bool(forKey: debugForcePlusKey) {
+    #if DEBUG
+    static let isRunningInDebugConfiguration = true
+    #else
+    static let isRunningInDebugConfiguration = false
+    #endif
+
+    /// Debug builds unlock Plus by default so anyone building/running the app can see the full
+    /// feature set without a purchase; toggle "Debug: Plus Unlocked" off in Settings to preview
+    /// the locked/paywalled experience while developing. TestFlight builds are unlocked too, but
+    /// that happens by `SubscriptionManager` caching `true` into `isPlusSubscriberKey` on launch
+    /// (see its TestFlight detection) rather than through this debug branch, since TestFlight is
+    /// a Release configuration. Only public App Store installs require a real subscription.
+    static func hasPlusAccess(
+        in defaults: UserDefaults = sharedDefaults,
+        isDebugBuild: Bool = isRunningInDebugConfiguration
+    ) -> Bool {
+        if isDebugBuild {
+            if let debugOverride = defaults.object(forKey: debugForcePlusKey) as? Bool {
+                return debugOverride
+            }
             return true
         }
-        #endif
         return defaults.bool(forKey: isPlusSubscriberKey)
     }
 

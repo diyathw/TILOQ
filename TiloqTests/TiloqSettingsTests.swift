@@ -10,28 +10,49 @@ struct TiloqSettingsTests {
         return defaults
     }
 
-    @Test("Plus access is denied with no entitlement and no debug override")
-    func noAccessByDefault() {
+    @Test("Debug builds are unlocked by default with no override set")
+    func debugBuildIsUnlockedByDefault() {
         let defaults = isolatedDefaults()
 
-        #expect(TiloqSettings.hasPlusAccess(in: defaults) == false)
+        #expect(TiloqSettings.hasPlusAccess(in: defaults, isDebugBuild: true) == true)
     }
 
-    @Test("A verified subscriber entitlement grants Plus access")
-    func subscriberEntitlementGrantsAccess() {
+    @Test("Turning the debug override off previews the locked, free experience")
+    func debugOverrideCanPreviewLockedState() {
         let defaults = isolatedDefaults()
-        defaults.set(true, forKey: TiloqSettings.isPlusSubscriberKey)
+        defaults.set(false, forKey: TiloqSettings.debugForcePlusKey)
 
-        #expect(TiloqSettings.hasPlusAccess(in: defaults) == true)
+        #expect(TiloqSettings.hasPlusAccess(in: defaults, isDebugBuild: true) == false)
     }
 
-    #if DEBUG
-    @Test("The debug override grants Plus access without a real entitlement")
-    func debugOverrideGrantsAccess() {
+    @Test("Turning the debug override on unlocks explicitly")
+    func debugOverrideCanForceUnlock() {
         let defaults = isolatedDefaults()
         defaults.set(true, forKey: TiloqSettings.debugForcePlusKey)
 
-        #expect(TiloqSettings.hasPlusAccess(in: defaults) == true)
+        #expect(TiloqSettings.hasPlusAccess(in: defaults, isDebugBuild: true) == true)
     }
-    #endif
+
+    @Test("Release builds (App Store or TestFlight) deny access with no cached entitlement")
+    func releaseBuildRequiresRealEntitlement() {
+        let defaults = isolatedDefaults()
+
+        #expect(TiloqSettings.hasPlusAccess(in: defaults, isDebugBuild: false) == false)
+    }
+
+    @Test("Release builds honor a cached subscriber entitlement")
+    func releaseBuildHonorsSubscriberEntitlement() {
+        let defaults = isolatedDefaults()
+        defaults.set(true, forKey: TiloqSettings.isPlusSubscriberKey)
+
+        #expect(TiloqSettings.hasPlusAccess(in: defaults, isDebugBuild: false) == true)
+    }
+
+    @Test("Release builds ignore the debug override entirely")
+    func releaseBuildIgnoresDebugOverride() {
+        let defaults = isolatedDefaults()
+        defaults.set(true, forKey: TiloqSettings.debugForcePlusKey)
+
+        #expect(TiloqSettings.hasPlusAccess(in: defaults, isDebugBuild: false) == false)
+    }
 }

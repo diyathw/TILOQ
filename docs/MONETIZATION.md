@@ -40,14 +40,22 @@ Both scope questions are confirmed (2026-09-18): encryption stays free since it'
 - A `PaywallView` (SwiftUI, `TiloqApp` only) shown when a free user taps a gated control: explains the offer, shows price + trial terms (required disclosure text — see Compliance below), Subscribe button, and a **Restore Purchases** button (Apple requires this for any paid unlock).
 - Settings gets a small status row (matching the existing "ON DEVICE" status pattern): "TILOQ Plus — Trial (N days left)" / "Active" / "Free — Upgrade".
 
+## Who gets Plus for free
+
+Confirmed (2026-09-18): testers should never hit the paywall — only a real public App Store install should require payment. `TiloqSettings.hasPlusAccess` implements this:
+
+- **Debug builds** (anyone building/running from Xcode) are unlocked by default, no setup needed. A `#if DEBUG`-only "Debug: Plus Unlocked" toggle in Settings defaults to on; turn it off to preview the locked, free experience while developing.
+- **TestFlight builds** are unlocked automatically too, with no toggle to reach for — `SubscriptionManager` detects TestFlight at launch (a TestFlight install's App Store receipt file is always named `sandboxReceipt`, vs. `receipt` for a real purchase) and caches `true` into the same shared `isPlusSubscriberKey` the extension already reads. No code path distinguishes "tester" from "subscriber" past that point.
+- **Public App Store installs** get none of the above — `hasPlusAccess` falls through to the real cached StoreKit entitlement, so payment is actually required once this ships.
+
 ## Testing strategy — no custom "skip paywall" backdoor needed
 
-Apple already provides the right tools for every stage of testing; a hand-rolled bypass would be extra surface area for no benefit:
+Apple already provides the right tools for every stage of testing; a hand-rolled bypass would be extra surface area for no benefit. All of this is already wired up in the repo, not just planned:
 
-1. **Local/Simulator (fastest iteration):** add a `Configuration.storekit` file to the Xcode project, define the subscription product and its 14-day free-trial introductory offer locally, and set it as the scheme's StoreKit Configuration for Debug. This runs entirely offline — no App Store Connect setup required to start building. Simulator's Debug → StoreKit → Manage Transactions menu lets you simulate trial, renewal, expiration, and cancellation instantly.
-2. **Debug-only manual override (fastest UI iteration):** a `#if DEBUG`-only toggle in Settings (or a hidden gesture) that force-sets the cached entitlement flag, for quickly eyeballing the unlocked UI state without exercising the full StoreKit flow every time. Never compiled into Release builds.
-3. **TestFlight / Sandbox (most realistic):** once a build reaches TestFlight, Apple automatically routes it to the StoreKit Sandbox — real purchase/trial/renewal flow, zero real charges. Apple also compresses sandbox trial/renewal durations dramatically (a 14-day trial renews every few minutes) so beta testers can exercise the full lifecycle quickly without waiting two weeks.
-4. **Offer codes:** for giving specific reviewers or testers free access without the trial mechanics, generate one-time or custom offer codes in App Store Connect — no extra app code needed.
+1. **Local/Simulator (fastest iteration):** `Tiloq.storekit` at the repo root defines the subscription product and its 14-day free-trial introductory offer for fully offline local testing. The shared `TiloqApp.xcscheme` already points its Run action at that file, so running from Xcode (Simulator or a physical device) activates it with no manual scheme setup. Xcode's Debug → StoreKit → Manage Transactions menu lets you simulate trial, renewal, expiration, and cancellation instantly instead of waiting real days. (Note: this local StoreKit environment only activates when Xcode itself launches the app through its debugger — installing a build via `devicectl`/`xcodebuild` from the command line does not trigger it.)
+2. **Debug-only manual override:** see "Who gets Plus for free" above — defaults to unlocked, flip it off to eyeball the paywall UI itself.
+3. **TestFlight / Sandbox (most realistic for real subscribers):** once a build reaches TestFlight, testers are auto-unlocked per above, but the underlying StoreKit Sandbox is still available for testing the *real* purchase/trial/renewal flow if needed (e.g. right before submitting, to confirm the paywall itself still works correctly for a hypothetical non-tester) — real flow, zero real charges. Apple also compresses sandbox trial/renewal durations dramatically (a 14-day trial renews every few minutes).
+4. **Offer codes:** for giving specific reviewers free access without the trial mechanics, generate one-time or custom offer codes in App Store Connect — no extra app code needed.
 
 ## App Store Connect setup checklist (human-only — cannot be done from this repo)
 

@@ -68,7 +68,7 @@ actor SubscriptionManager {
     }
 
     func refreshEntitlement() async {
-        var isEntitled = false
+        var isEntitled = Self.isTestFlightBuild
         for await result in Transaction.currentEntitlements {
             if case .verified(let transaction) = result,
                transaction.productID == TiloqSettings.plusAnnualProductID,
@@ -77,6 +77,16 @@ actor SubscriptionManager {
             }
         }
         TiloqSettings.sharedDefaults.set(isEntitled, forKey: TiloqSettings.isPlusSubscriberKey)
+    }
+
+    /// TestFlight builds are Release configuration, so `TiloqSettings.isRunningInDebugConfiguration`
+    /// is false for them -- they're unlocked here instead, by caching `true` into the same shared
+    /// `isPlusSubscriberKey` the extension already reads. The standard way to distinguish a
+    /// TestFlight install from a public App Store install: TestFlight's receipt file is always
+    /// named "sandboxReceipt"; a real App Store install's is named "receipt".
+    nonisolated static var isTestFlightBuild: Bool {
+        guard let path = Bundle.main.appStoreReceiptURL?.path else { return false }
+        return path.contains("sandboxReceipt")
     }
 
     private func handle(_ result: VerificationResult<Transaction>) async {
