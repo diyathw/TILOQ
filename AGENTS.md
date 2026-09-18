@@ -107,6 +107,10 @@ Do not claim device verification unless the build was installed and the relevant
 - Do not invent public URLs, support contacts, legal classifications, or App Store answers. Leave an explicit placeholder or report the blocker.
 - Do not set export-compliance flags without confirming the correct classification for the encryption implementation.
 
+## Engineering governance skills
+
+Specialized review checklists live under `.claude/agents/` + `.claude/commands/` (Claude Code) and `.agents/skills/` (Codex CLI) — architecture, general code review, test coverage, security/privacy (OWASP MASVS), accessibility, and App Store readiness. Both sets cover the same ground and should be kept in sync when one is updated; consult the relevant one before considering a non-trivial change done.
+
 ## Change discipline
 
 - Inspect existing code and tests before editing.
