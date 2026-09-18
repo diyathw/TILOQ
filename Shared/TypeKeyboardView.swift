@@ -268,35 +268,46 @@ struct TypeKeyboardView: View {
                     .accessibilityHint("Shows a local AI \(action.rawValue.lowercased()) suggestion")
 
                 case .encrypt:
-                    let isShowingResult = encryptedText != nil || decryptedText != nil
-                    let tint = decryptedText != nil ? TypeTheme.grammar : TypeTheme.encryption
-                    Menu {
-                        Button("Encrypt", systemImage: "lock.fill") {
-                            Haptics.tap()
-                            selectedAction = nil
-                            decryptedText = nil
+                    Button {
+                        Haptics.tap()
+                        selectedAction = nil
+                        decryptedText = nil
+                        if encryptedText == nil {
                             generateEncryptionResult()
-                        }
-                        Button("Decrypt", systemImage: "lock.open.fill") {
-                            Haptics.tap()
-                            selectedAction = nil
+                        } else {
                             encryptedText = nil
-                            generateDecryptionResult()
                         }
                     } label: {
                         toolbarLabel(
-                            title: decryptedText != nil ? "Decrypt" : "Encrypt",
-                            symbol: decryptedText != nil ? "lock.open.fill" : "lock.fill",
-                            tint: tint,
-                            isSelected: isShowingResult,
-                            showsChevron: true
+                            title: "Encrypt",
+                            symbol: "lock.fill",
+                            tint: TypeTheme.encryption,
+                            isSelected: encryptedText != nil
                         )
                     }
-                    .buttonStyle(TactileButtonStyle(tint: tint))
-                    .accessibilityHint("Encrypts or decrypts the selected text")
+                    .buttonStyle(TactileButtonStyle(tint: TypeTheme.encryption))
+                    .accessibilityHint("Shows an encrypted preview of the selected text")
 
                 case .decrypt:
-                    EmptyView()
+                    Button {
+                        Haptics.tap()
+                        selectedAction = nil
+                        encryptedText = nil
+                        if decryptedText == nil {
+                            generateDecryptionResult()
+                        } else {
+                            decryptedText = nil
+                        }
+                    } label: {
+                        toolbarLabel(
+                            title: "Decrypt",
+                            symbol: "lock.open.fill",
+                            tint: TypeTheme.grammar,
+                            isSelected: decryptedText != nil
+                        )
+                    }
+                    .buttonStyle(TactileButtonStyle(tint: TypeTheme.grammar))
+                    .accessibilityHint("Shows the decrypted contents of the selected TILOQ encrypted text")
                 }
             }
         }
@@ -491,8 +502,7 @@ struct TypeKeyboardView: View {
         title: String,
         symbol: String,
         tint: Color,
-        isSelected: Bool,
-        showsChevron: Bool = false
+        isSelected: Bool
     ) -> some View {
         HStack(spacing: 6) {
             Image(systemName: symbol)
@@ -501,10 +511,6 @@ struct TypeKeyboardView: View {
                 .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
-            if showsChevron {
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 8, weight: .bold))
-            }
         }
         .foregroundStyle(isSelected ? tint : .white)
         .padding(.horizontal, 14)
