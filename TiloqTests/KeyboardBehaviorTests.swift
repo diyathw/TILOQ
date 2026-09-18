@@ -273,25 +273,70 @@ struct KeyboardBehaviorTests {
         #expect(text == "new draft")
     }
 
-    @Test("AI results request more keyboard height")
-    func resultPanelHeight() {
-        let compact = KeyboardBehavior.preferredHeight(
-            isResultVisible: false,
-            includesNumberRow: true
+    @Test(
+        "Keyboard height depends only on the number row, never on the result panel",
+        arguments: [
+            (includesNumberRow: true, expected: CGFloat(314)),
+            (includesNumberRow: false, expected: CGFloat(262))
+        ]
+    )
+    func preferredHeight(includesNumberRow: Bool, expected: CGFloat) {
+        #expect(
+            KeyboardBehavior.preferredHeight(includesNumberRow: includesNumberRow) == expected
         )
-        let expanded = KeyboardBehavior.preferredHeight(
-            isResultVisible: true,
-            includesNumberRow: true
+        #expect(
+            KeyboardBehavior.preferredHeight(
+                includesNumberRow: includesNumberRow,
+                availableScreenHeight: nil
+            ) == expected
         )
-        let alternateLayer = KeyboardBehavior.preferredHeight(
-            isResultVisible: false,
-            includesNumberRow: false
-        )
+    }
 
-        #expect(compact == 400)
-        #expect(expanded == 572)
-        #expect(alternateLayer == 348)
-        #expect(expanded > compact)
+    @Test("The keyboard height defaults to including the number row")
+    func preferredHeightDefaults() {
+        #expect(KeyboardBehavior.preferredHeight() == 314)
+    }
+
+    @Test(
+        "The keyboard never takes more than half of a short (landscape) screen",
+        arguments: [
+            (availableScreenHeight: CGFloat(400), includesNumberRow: true, expected: CGFloat(200)),
+            (availableScreenHeight: CGFloat(500), includesNumberRow: true, expected: CGFloat(250)),
+            (availableScreenHeight: CGFloat(390), includesNumberRow: false, expected: CGFloat(195))
+        ]
+    )
+    func preferredHeightIsCappedOnShortScreens(
+        availableScreenHeight: CGFloat,
+        includesNumberRow: Bool,
+        expected: CGFloat
+    ) {
+        #expect(
+            KeyboardBehavior.preferredHeight(
+                includesNumberRow: includesNumberRow,
+                availableScreenHeight: availableScreenHeight
+            ) == expected
+        )
+    }
+
+    @Test(
+        "A generous screen height leaves the measured keyboard height untouched",
+        arguments: [
+            (availableScreenHeight: CGFloat(1000), includesNumberRow: false, expected: CGFloat(262)),
+            (availableScreenHeight: CGFloat(852), includesNumberRow: true, expected: CGFloat(314)),
+            (availableScreenHeight: CGFloat(0), includesNumberRow: true, expected: CGFloat(314))
+        ]
+    )
+    func preferredHeightIsNotCappedOnTallScreens(
+        availableScreenHeight: CGFloat,
+        includesNumberRow: Bool,
+        expected: CGFloat
+    ) {
+        #expect(
+            KeyboardBehavior.preferredHeight(
+                includesNumberRow: includesNumberRow,
+                availableScreenHeight: availableScreenHeight
+            ) == expected
+        )
     }
 
     @Test("Suggestion engine finds only the word immediately before the cursor", arguments: [

@@ -11,6 +11,7 @@ enum TiloqSettings {
     static let autoCorrectionKey = "autoCorrectionEnabled"
     static let capsLockKey = "capsLockEnabled"
     static let periodShortcutKey = "periodShortcutEnabled"
+    static let numberRowKey = "numberRowEnabled"
     static let hapticsKey = "hapticsEnabled"
     static let rewriteEnabledKey = "rewriteEnabled"
     static let grammarEnabledKey = "grammarEnabled"

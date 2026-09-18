@@ -42,8 +42,7 @@ final class KeyboardViewController: UIInputViewController {
         host.view.translatesAutoresizingMaskIntoConstraints = false
         let heightConstraint = view.heightAnchor.constraint(
             equalToConstant: KeyboardBehavior.preferredHeight(
-                isResultVisible: false,
-                includesNumberRow: true
+                includesNumberRow: TiloqSettings.sharedDefaults.bool(forKey: TiloqSettings.numberRowKey)
             )
         )
         heightConstraint.priority = UILayoutPriority(999)

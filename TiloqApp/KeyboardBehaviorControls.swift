@@ -13,6 +13,8 @@ struct KeyboardBehaviorControls: View {
     private var capsLockEnabled = true
     @AppStorage(TiloqSettings.periodShortcutKey, store: TiloqSettings.sharedDefaults)
     private var periodShortcutEnabled = true
+    @AppStorage(TiloqSettings.numberRowKey, store: TiloqSettings.sharedDefaults)
+    private var numberRowEnabled = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -33,6 +35,10 @@ struct KeyboardBehaviorControls: View {
             rowDivider
             Toggle("“.” Shortcut", isOn: $periodShortcutEnabled)
                 .keyboardSettingsRow()
+            rowDivider
+            Toggle("Number Row", isOn: $numberRowEnabled)
+                .keyboardSettingsRow()
+                .accessibilityHint("Shows a permanent number row above the letter keys. Numbers are always available via the 123 key regardless of this setting.")
         }
     }
 

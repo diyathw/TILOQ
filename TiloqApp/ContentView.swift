@@ -33,43 +33,43 @@ private struct KeyboardDemoView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("MESSAGE")
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("MESSAGE")
+                                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                                    .tracking(1.5)
+                                    .foregroundStyle(.secondary)
+                                Text("Alex")
+                                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            }
+                            Spacer()
+                            Label("Local", systemImage: "lock.fill")
                                 .font(.system(size: 11, weight: .semibold, design: .rounded))
-                                .tracking(1.5)
-                                .foregroundStyle(.secondary)
-                            Text("Alex")
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .foregroundStyle(TypeTheme.rewrite)
                         }
-                        Spacer()
-                        Label("Local", systemImage: "lock.fill")
-                            .font(.system(size: 11, weight: .semibold, design: .rounded))
-                            .foregroundStyle(TypeTheme.rewrite)
-                    }
 
-                    Group {
-                        if message == TypeCopy.original {
-                            ProofreadSample()
-                        } else {
-                            Text(message)
+                        Group {
+                            if message == TypeCopy.original {
+                                ProofreadSample()
+                            } else {
+                                Text(message)
+                            }
                         }
-                    }
-                    .font(.system(size: 18, weight: .regular, design: .rounded))
-                    .lineSpacing(4)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(16)
-                    .background(Color(uiColor: .secondarySystemBackground))
-                    .clipShape(.rect(cornerRadius: 10))
+                        .font(.system(size: 18, weight: .regular, design: .rounded))
+                        .lineSpacing(4)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(16)
+                        .background(Color(uiColor: .secondarySystemBackground))
+                        .clipShape(.rect(cornerRadius: 10))
 
-                    Text("Select the sentence, then choose one focused action.")
-                        .font(.system(size: 12, design: .rounded))
-                        .foregroundStyle(.secondary)
+                        Text("Select the sentence, then choose one focused action.")
+                            .font(.system(size: 12, design: .rounded))
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(20)
                 }
-                .padding(20)
-
-                Spacer(minLength: 8)
 
                 TypeKeyboardView(
                     sourceText: { message },

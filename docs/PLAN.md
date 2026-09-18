@@ -1,6 +1,6 @@
 # TILOQ Product and Release Plan
 
-Last updated: August 17, 2026
+Last updated: September 18, 2026
 
 ## Product direction
 
@@ -49,12 +49,27 @@ The product should remain simpler than a chatbot or full writing suite. New work
 ### Current release candidate
 
 - Version: `1.0`
-- Build: `1`
+- Build: `2`
 - App bundle: `com.tiloq.app`
 - Keyboard bundle: `com.tiloq.app.keyboard`
 - App Group: `group.com.tiloq.app`
 - Deployment target: iOS 26
 - Distribution state: development-signed device build; Apple Distribution signing is still required for upload
+- Versioning: build number is now managed by Apple's `apple-generic` versioning system (`xcrun agvtool next-version -all`) instead of hand-editing `project.pbxproj`
+
+### Fixed since build 1 (found in TestFlight beta testing)
+
+- **Keyboard demo tab-bar overlap** — on height-constrained screens, the "Try TILOQ" demo's header content could overflow past the floating tab bar instead of scrolling, hiding part of the keyboard behind it. Fixed by making the header scrollable while the keyboard stays pinned at its full height. (`TiloqApp/ContentView.swift`)
+- **Excess space below the space bar row** — `KeyboardBehavior.preferredHeight` reserved more height than the keyboard's actual rendered content needed (measured directly via SwiftUI `GeometryReader` instrumentation: 366pt/314pt/~538pt actual vs. 400pt/348pt/572pt reserved — a flat 34pt overestimate), leaving a visible dead strip below the last key row in the real keyboard extension. Recalibrated the two base height constants to match measured content; regression test `KeyboardBehaviorTests.resultPanelHeight()` pins the corrected values. (`Shared/KeyboardBehavior.swift`)
+
+Both fixes still need a new build uploaded to TestFlight before beta testers see them — being in the repo doesn't update an installed build.
+
+### Fixed since build 2 (not yet in an uploaded build)
+
+- **Toolbar and suggestion bar merged into one row** — Rewrite/Grammar/Improve/Encrypt and the suggestion bar used to be two separate stacked rows. They're now one row with a chevron toggle (`showingActionBar`) that swaps between the two, saving a full row of height in every state. (`Shared/TypeKeyboardView.swift`)
+- **Permanent number row is now opt-in, off by default** — TILOQ used to always show a number row above the letters, unlike Apple's own keyboard (numbers only via the `123` key). Added a "Number Row" toggle in Settings → Keyboard, default off; the `123` key always works regardless of the setting. Also widened the ASDFGHJKL row (extra inset halved, 16pt → 8pt) to spread closer to Apple's edge-to-edge layout. (`Shared/TiloqSettings.swift`, `Shared/TypeKeyboardView.swift`, `TiloqApp/KeyboardBehaviorControls.swift`)
+- **AI result panel now replaces the keyboard instead of growing it taller** — tapping Rewrite/Grammar/Improve/Encrypt used to keep the full QWERTY rows visible below the result, requiring extra height. The result panel now takes over the full keyboard space (with a new Cancel button to dismiss without inserting), so the keyboard's total height no longer needs to change when a result is showing. This let `KeyboardBehavior.preferredHeight` drop its `isResultVisible` parameter entirely — one less axis of height complexity. (`Shared/TypeKeyboardView.swift`)
+- **Keyboard was nearly full-screen in landscape** — `preferredHeight` had no concept of orientation and always returned the same portrait-sized value, so in landscape (a much shorter screen) it consumed almost the whole screen and hid the text field. Added an `availableScreenHeight` parameter that caps the result to at most 50% of the current screen height when supplied; `TypeKeyboardView` detects landscape via its own live width (a device's landscape height ≈ its portrait width, read from `UIScreen.main.bounds.width`) and passes that cap only when landscape. Regression tests cover both the capped and uncapped cases. (`Shared/KeyboardBehavior.swift`, `Shared/TypeKeyboardView.swift`)
 
 ## Milestone 1 — Device hardening
 

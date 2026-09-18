@@ -73,12 +73,21 @@ enum KeyboardBehavior {
         return selectedText
     }
 
+    /// The keyboard height in points.
+    ///
+    /// The AI result panel replaces the key rows instead of stacking on top of
+    /// them, so a visible result no longer changes the height. Pass
+    /// `availableScreenHeight` (for example in landscape, where the screen is
+    /// short) to keep the keyboard from covering the host text field: the
+    /// height is then capped at half of the available height.
     static func preferredHeight(
-        isResultVisible: Bool,
-        includesNumberRow: Bool = true
+        includesNumberRow: Bool = true,
+        availableScreenHeight: CGFloat? = nil
     ) -> CGFloat {
-        let baseHeight: CGFloat = isResultVisible ? 520 : 348
-        return baseHeight + (includesNumberRow ? 52 : 0)
+        let baseHeight: CGFloat = 262
+        let uncapped = baseHeight + (includesNumberRow ? 52 : 0)
+        guard let availableScreenHeight, availableScreenHeight > 0 else { return uncapped }
+        return min(uncapped, availableScreenHeight * 0.5)
     }
 
     static func shouldCapitalize(after context: String?) -> Bool {

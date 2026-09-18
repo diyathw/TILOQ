@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(ls*)",
+      "Bash(find *)",
+      "Bash(grep *)",
+      "Bash(plutil -lint*)",
+      "Bash(xcodebuild -list*)",
+      "Bash(xcodebuild -version)",
+      "Bash(xcodebuild -showBuildSettings*)",
+      "Bash(xcodebuild -project * -scheme * -destination * build)",
+      "Bash(xcodebuild -project * -scheme * -destination * test)",
+      "Bash(xcodebuild build*)",
+      "Bash(xcodebuild test*)",
+      "Bash(xcrun agvtool what-version*)",
+      "Bash(xcrun agvtool next-version*)",
+      "Bash(xcrun simctl list*)",
+      "Bash(xcrun simctl boot*)",
+      "Bash(xcrun simctl install*)",
+      "Bash(xcrun simctl launch*)",
+      "Bash(xcrun simctl terminate*)",
+      "Bash(xcrun simctl io * screenshot*)",
+      "Bash(xcrun simctl ui*)",
+      "Bash(xcrun devicectl list*)",
+      "Bash(xcrun devicectl device install*)",
+      "Bash(xcrun devicectl device process launch*)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git reset --hard*)",
+      "Bash(rm -rf*)",
+      "Bash(xcodebuild archive*)",
+      "Bash(xcodebuild -exportArchive*)",
+      "Bash(codesign*)",
+      "Bash(xcrun altool*)",
+      "Bash(xcrun notarytool*)",
+      "Bash(xcrun devicectl device uninstall*)"
+    ]
+  }
+}

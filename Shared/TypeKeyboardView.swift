@@ -24,7 +24,9 @@ struct TypeKeyboardView: View {
     @State private var typingSuggestions: [String] = []
     @State private var rgbPhase = 0.0
     @State private var isCursorModeActive = false
+    @State private var extensionWidth: CGFloat = 0
     @State private var encryptionNotice: String?
+    @State private var showingActionBar = false
     @AppStorage(
         TiloqSettings.rgbLightingKey,
         store: TiloqSettings.sharedDefaults
@@ -45,6 +47,8 @@ struct TypeKeyboardView: View {
     private var capsLockEnabled = true
     @AppStorage(TiloqSettings.periodShortcutKey, store: TiloqSettings.sharedDefaults)
     private var periodShortcutEnabled = true
+    @AppStorage(TiloqSettings.numberRowKey, store: TiloqSettings.sharedDefaults)
+    private var numberRowEnabled = false
     @AppStorage(TiloqSettings.encryptionEnabledKey, store: TiloqSettings.sharedDefaults)
     private var encryptionEnabled = false
     @AppStorage(TiloqSettings.rewriteEnabledKey, store: TiloqSettings.sharedDefaults)
@@ -58,8 +62,6 @@ struct TypeKeyboardView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            toolBar
-
             if let action = selectedAction {
                 ResultPanel(
                     action: action,
@@ -71,6 +73,11 @@ struct TypeKeyboardView: View {
                     onInsert: {
                         onSuggestion(generatedText)
                         Haptics.success()
+                        selectedAction = nil
+                        refreshSuggestionsSoon()
+                    },
+                    onCancel: {
+                        Haptics.tap()
                         selectedAction = nil
                         refreshSuggestionsSoon()
                     }
@@ -92,24 +99,21 @@ struct TypeKeyboardView: View {
                         Haptics.success()
                         self.encryptedText = nil
                         refreshSuggestionsSoon()
+                    },
+                    onCancel: {
+                        Haptics.tap()
+                        self.encryptedText = nil
+                        refreshSuggestionsSoon()
                     }
                 )
                 .transition(.asymmetric(
                     insertion: .opacity.combined(with: .move(edge: .bottom)),
                     removal: .opacity
                 ))
+            } else {
+                controlBar
+                keyRows
             }
-
-            KeyboardSuggestionBar(
-                suggestions: layer == .letters ? typingSuggestions : [],
-                isEnabled: suggestionsEnabled,
-                rgbLightingEnabled: rgbLightingEnabled,
-                rgbPhase: rgbPhase,
-                statusMessage: encryptionNotice,
-                onSelect: selectSuggestion
-            )
-
-            keyRows
         }
         .padding(.horizontal, 8)
         .padding(.top, 8)
@@ -118,6 +122,15 @@ struct TypeKeyboardView: View {
             KeyboardBackdropView(
                 style: KeyboardBackdropStyle(rawValue: backdropValue) ?? .none
             )
+        }
+        .background {
+            GeometryReader { proxy in
+                Color.clear
+                    .onAppear { extensionWidth = proxy.size.width }
+                    .onChange(of: proxy.size.width) { _, width in
+                        extensionWidth = width
+                    }
+            }
         }
         .animation(.spring(response: 0.34, dampingFraction: 0.82), value: selectedAction)
         .animation(.spring(response: 0.34, dampingFraction: 0.82), value: encryptedText != nil)
@@ -131,13 +144,13 @@ struct TypeKeyboardView: View {
         .onReceive(NotificationCenter.default.publisher(for: .tiloqKeyboardContextDidChange)) { _ in
             refreshSuggestions()
         }
-        .onChange(of: selectedAction) { _, action in
-            updatePreferredHeight()
-        }
-        .onChange(of: encryptedText) { _, _ in
-            updatePreferredHeight()
-        }
         .onChange(of: layer) { _, _ in
+            updatePreferredHeight()
+        }
+        .onChange(of: extensionWidth) { _, _ in
+            updatePreferredHeight()
+        }
+        .onChange(of: numberRowEnabled) { _, _ in
             updatePreferredHeight()
         }
         .onChange(of: autoCapitalizationEnabled) { _, _ in
@@ -155,6 +168,36 @@ struct TypeKeyboardView: View {
         .onChange(of: encryptionEnabled) { _, _ in
             encryptionNotice = nil
             encryptedText = nil
+        }
+    }
+
+    private var controlBar: some View {
+        HStack(spacing: 8) {
+            if showingActionBar {
+                toolBar
+            } else {
+                KeyboardSuggestionBar(
+                    suggestions: layer == .letters ? typingSuggestions : [],
+                    isEnabled: suggestionsEnabled,
+                    rgbLightingEnabled: rgbLightingEnabled,
+                    rgbPhase: rgbPhase,
+                    statusMessage: encryptionNotice,
+                    onSelect: selectSuggestion
+                )
+            }
+
+            Button {
+                Haptics.tap()
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    showingActionBar.toggle()
+                }
+            } label: {
+                Image(systemName: showingActionBar ? "chevron.left" : "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 28, height: 28)
+            }
+            .accessibilityLabel(showingActionBar ? "Show suggestions" : "Show writing actions")
         }
     }
 
@@ -214,7 +257,7 @@ struct TypeKeyboardView: View {
 
     private var keyRows: some View {
         VStack(spacing: 8) {
-            if layer == .letters {
+            if layer == .letters && numberRowEnabled {
                 KeyboardNumberRow(
                     rgbLightingEnabled: rgbLightingEnabled,
                     rgbPhase: rgbPhase,
@@ -279,7 +322,7 @@ struct TypeKeyboardView: View {
                             .frame(width: 44)
                     }
                 }
-                .padding(.horizontal, index == 1 && layer == .letters ? 16 : 0)
+                .padding(.horizontal, index == 1 && layer == .letters ? 8 : 0)
             }
 
             HStack(spacing: 6) {
@@ -352,10 +395,11 @@ struct TypeKeyboardView: View {
     }
 
     private func updatePreferredHeight() {
+        let isLandscape = extensionWidth > 600
         onPreferredHeightChange(
             KeyboardBehavior.preferredHeight(
-                isResultVisible: selectedAction != nil || encryptedText != nil,
-                includesNumberRow: layer == .letters
+                includesNumberRow: layer == .letters && numberRowEnabled,
+                availableScreenHeight: isLandscape ? UIScreen.main.bounds.width : nil
             )
         )
     }
@@ -580,6 +624,7 @@ private struct ResultPanel: View {
     @Binding var tone: RewriteTone
     @Binding var copied: Bool
     let onInsert: () -> Void
+    let onCancel: () -> Void
 
     private var tint: Color {
         action?.tint ?? TypeTheme.encryption
@@ -634,6 +679,8 @@ private struct ResultPanel: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
+            Spacer(minLength: 0)
+
             HStack(spacing: 8) {
                 Button("Insert", action: onInsert)
                     .buttonStyle(ResultActionStyle(primary: true, tint: tint))
@@ -671,9 +718,16 @@ private struct ResultPanel: View {
                     }
                     .buttonStyle(ResultActionStyle(primary: false, tint: tint))
                 }
+
+                Spacer(minLength: 0)
+
+                Button("Cancel", action: onCancel)
+                    .buttonStyle(ResultActionStyle(primary: false, tint: tint))
+                    .accessibilityHint("Discards this result and returns to the keyboard")
             }
         }
         .padding(12)
+        .frame(maxHeight: .infinity, alignment: .top)
         .background(Color.clear)
         .clipShape(.rect(cornerRadius: 10))
         .keyboardGlass(.result, tint: TypeTheme.surface)
