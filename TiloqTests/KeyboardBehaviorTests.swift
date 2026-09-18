@@ -55,6 +55,23 @@ struct KeyboardBehaviorTests {
         )
     }
 
+    @Test(
+        "Decryption prefers the selection, then falls back to the field's text",
+        arguments: [
+            (selection: "TILOQ1.selected", source: "TILOQ1.fieldtext", expected: "TILOQ1.selected"),
+            (selection: nil, source: "TILOQ1.fieldtext", expected: "TILOQ1.fieldtext"),
+            (selection: "", source: "TILOQ1.fieldtext", expected: "TILOQ1.fieldtext"),
+            (selection: "   ", source: "TILOQ1.fieldtext", expected: "TILOQ1.fieldtext"),
+            (selection: nil, source: "", expected: nil),
+            (selection: nil, source: "   ", expected: nil)
+        ] as [(selection: String?, source: String, expected: String?)]
+    )
+    func decryptionSelection(selection: String?, source: String, expected: String?) {
+        #expect(
+            KeyboardBehavior.decryptionSource(selectedText: selection, sourceText: source) == expected
+        )
+    }
+
     @Test("Keyboard glass roles keep consistent surface metrics")
     func keyboardGlassMetrics() {
         #expect(KeyboardGlassRole.key.cornerRadius == 7)

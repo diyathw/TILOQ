@@ -75,6 +75,19 @@ enum KeyboardBehavior {
         return selectedText
     }
 
+    /// A custom keyboard extension without Full Access cannot read the
+    /// system pasteboard, so decryption reads from the host app's text
+    /// field instead (the same document-proxy mechanism `encryptionSource`
+    /// uses): the current selection if there is one, otherwise whatever
+    /// text is already in the field.
+    static func decryptionSource(selectedText: String?, sourceText: String) -> String? {
+        if let selectedText, selectedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+            return selectedText
+        }
+        let trimmedSource = sourceText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmedSource.isEmpty ? nil : sourceText
+    }
+
     /// The keyboard height in points.
     ///
     /// The AI result panel replaces the key rows instead of stacking on top of
