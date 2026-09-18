@@ -22,6 +22,7 @@ struct TypeKeyboardView: View {
     @State private var encryptedText: String?
     @State private var decryptedText: String?
     @State private var decryptedSource = ""
+    @State private var decryptError: String?
     @State private var isGenerating = false
     @State private var typingSuggestions: [String] = []
     @State private var rgbPhase = 0.0
@@ -139,6 +140,29 @@ struct TypeKeyboardView: View {
                     insertion: .opacity.combined(with: .move(edge: .bottom)),
                     removal: .opacity
                 ))
+            } else if let decryptError {
+                ResultPanel(
+                    action: nil,
+                    original: decryptedSource,
+                    result: "",
+                    isGenerating: false,
+                    tone: $tone,
+                    copied: $copied,
+                    onInsert: {},
+                    onCancel: {
+                        Haptics.tap()
+                        self.decryptError = nil
+                        refreshSuggestionsSoon()
+                    },
+                    titleOverride: "Decrypt",
+                    originalLabelOverride: "Captured Text",
+                    tintOverride: TypeTheme.grammar,
+                    errorMessage: decryptError
+                )
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .move(edge: .bottom)),
+                    removal: .opacity
+                ))
             } else {
                 controlBar
                 keyRows
@@ -162,6 +186,7 @@ struct TypeKeyboardView: View {
         .animation(.spring(response: 0.34, dampingFraction: 0.82), value: selectedAction)
         .animation(.spring(response: 0.34, dampingFraction: 0.82), value: encryptedText != nil)
         .animation(.spring(response: 0.34, dampingFraction: 0.82), value: decryptedText != nil)
+        .animation(.spring(response: 0.34, dampingFraction: 0.82), value: decryptError != nil)
         .task {
             tone = RewriteTone(rawValue: defaultToneValue) ?? .casual
             updateAutomaticShift()
@@ -201,6 +226,7 @@ struct TypeKeyboardView: View {
             encryptionNotice = nil
             encryptedText = nil
             decryptedText = nil
+            decryptError = nil
         }
     }
 
@@ -273,6 +299,7 @@ struct TypeKeyboardView: View {
                         Haptics.tap()
                         selectedAction = nil
                         decryptedText = nil
+                        decryptError = nil
                         if encryptedText == nil {
                             generateEncryptionResult()
                         } else {
@@ -294,17 +321,18 @@ struct TypeKeyboardView: View {
                         Haptics.tap()
                         selectedAction = nil
                         encryptedText = nil
-                        if decryptedText == nil {
+                        if decryptedText == nil && decryptError == nil {
                             generateDecryptionResult()
                         } else {
                             decryptedText = nil
+                            decryptError = nil
                         }
                     } label: {
                         toolbarLabel(
                             title: "Decrypt",
                             symbol: "lock.open.fill",
                             tint: TypeTheme.grammar,
-                            isSelected: decryptedText != nil
+                            isSelected: decryptedText != nil || decryptError != nil
                         )
                     }
                     .buttonStyle(TactileButtonStyle(tint: TypeTheme.grammar))
@@ -485,6 +513,7 @@ struct TypeKeyboardView: View {
         encryptionNotice = nil
         encryptedText = nil
         decryptedText = nil
+        decryptError = nil
         guard LocalAIEngine.state == .ready else {
             selectedAction = nil
             showingActionBar = false
@@ -571,31 +600,32 @@ struct TypeKeyboardView: View {
     }
 
     private func generateDecryptionResult() {
+        decryptError = nil
         do {
             guard let keyText = TiloqEncryptionKeyStore.load() else {
                 showingActionBar = false
                 encryptionNotice = "Set key text in TILOQ Settings"
                 return
             }
+            let capturedSelection = selectedText()
+            let capturedSource = sourceText()
             guard let source = KeyboardBehavior.decryptionSource(
-                selectedText: selectedText(),
-                sourceText: sourceText()
+                selectedText: capturedSelection,
+                sourceText: capturedSource
             ) else {
-                showingActionBar = false
-                encryptionNotice = "Paste the encrypted message into the text field first"
+                decryptedSource = capturedSelection?.isEmpty == false
+                    ? (capturedSelection ?? "")
+                    : capturedSource
+                decryptError = "No TILOQ1 message found in the text field"
                 return
             }
-            decryptedText = try TiloqTextEncryption.decrypt(
-                source.trimmingCharacters(in: .whitespacesAndNewlines),
-                keyText: keyText
-            )
+            decryptedText = try TiloqTextEncryption.decrypt(source, keyText: keyText)
             decryptedSource = source
             copied = false
             encryptionNotice = nil
         } catch {
             decryptedText = nil
-            showingActionBar = false
-            encryptionNotice = error.localizedDescription
+            decryptError = error.localizedDescription
         }
     }
 
@@ -733,6 +763,7 @@ private struct ResultPanel: View {
     var titleOverride: String? = nil
     var originalLabelOverride: String? = nil
     var tintOverride: Color? = nil
+    var errorMessage: String? = nil
 
     private var tint: Color {
         tintOverride ?? action?.tint ?? TypeTheme.encryption
@@ -763,11 +794,15 @@ private struct ResultPanel: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(originalLabelOverride ?? (action == nil ? "Selected Text" : "Original"))
                         .foregroundStyle(.secondary)
-                    Text(original.isEmpty ? TypeCopy.original : original)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
+                    Text(
+                        original.isEmpty
+                            ? (action == nil ? "(nothing captured)" : TypeCopy.original)
+                            : original
+                    )
+                    .foregroundStyle(.secondary)
+                    .lineLimit(action == nil ? 3 : 2)
                 }
-                .font(.system(size: 12, design: .rounded))
+                .font(.system(size: 12, design: action == nil ? .monospaced : .rounded))
             }
 
             if isGenerating {
@@ -780,6 +815,14 @@ private struct ResultPanel: View {
                 }
                 .font(.system(size: 13, weight: .medium, design: .rounded))
                 .frame(minHeight: 36)
+            } else if let errorMessage {
+                HStack(spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                    Text(errorMessage)
+                        .foregroundStyle(.red)
+                }
+                .font(.system(size: 13, weight: .medium, design: .rounded))
             } else {
                 Text(result)
                     .font(.system(size: 14, weight: .regular, design: .rounded))
@@ -791,41 +834,43 @@ private struct ResultPanel: View {
             Spacer(minLength: 0)
 
             HStack(spacing: 8) {
-                Button("Insert", action: onInsert)
-                    .buttonStyle(ResultActionStyle(primary: true, tint: tint))
+                if errorMessage == nil {
+                    Button("Insert", action: onInsert)
+                        .buttonStyle(ResultActionStyle(primary: true, tint: tint))
+                        .disabled(isGenerating)
+
+                    Button {
+                        UIPasteboard.general.string = result
+                        copied = true
+                        Haptics.success()
+                    } label: {
+                        Text(copied ? "Copied" : "Copy")
+                    }
+                    .buttonStyle(ResultActionStyle(primary: false, tint: tint))
                     .disabled(isGenerating)
 
-                Button {
-                    UIPasteboard.general.string = result
-                    copied = true
-                    Haptics.success()
-                } label: {
-                    Text(copied ? "Copied" : "Copy")
-                }
-                .buttonStyle(ResultActionStyle(primary: false, tint: tint))
-                .disabled(isGenerating)
-
-                if action == .rewrite {
-                    Menu {
-                        Picker("Tone", selection: $tone) {
-                            ForEach(RewriteTone.allCases) { tone in
-                                Text(tone.rawValue).tag(tone)
+                    if action == .rewrite {
+                        Menu {
+                            Picker("Tone", selection: $tone) {
+                                ForEach(RewriteTone.allCases) { tone in
+                                    Text(tone.rawValue).tag(tone)
+                                }
                             }
+                        } label: {
+                            Label(tone.rawValue, systemImage: "chevron.down")
+                                .labelStyle(TrailingIconLabelStyle())
                         }
-                    } label: {
-                        Label(tone.rawValue, systemImage: "chevron.down")
-                            .labelStyle(TrailingIconLabelStyle())
-                    }
-                    .buttonStyle(ResultActionStyle(primary: false, tint: tint))
-                } else if action == .improve {
-                    Menu {
-                        ForEach(RewriteTone.allCases) { tone in
-                            Button(tone.rawValue) { self.tone = tone }
+                        .buttonStyle(ResultActionStyle(primary: false, tint: tint))
+                    } else if action == .improve {
+                        Menu {
+                            ForEach(RewriteTone.allCases) { tone in
+                                Button(tone.rawValue) { self.tone = tone }
+                            }
+                        } label: {
+                            Text("Change tone")
                         }
-                    } label: {
-                        Text("Change tone")
+                        .buttonStyle(ResultActionStyle(primary: false, tint: tint))
                     }
-                    .buttonStyle(ResultActionStyle(primary: false, tint: tint))
                 }
 
                 Spacer(minLength: 0)

@@ -80,12 +80,32 @@ enum KeyboardBehavior {
     /// field instead (the same document-proxy mechanism `encryptionSource`
     /// uses): the current selection if there is one, otherwise whatever
     /// text is already in the field.
+    ///
+    /// Unlike encryption, decryption requires an exact, byte-perfect
+    /// message, and `UITextDocumentProxy.selectedText` is documented to
+    /// not always match what the user visually selected in third-party
+    /// apps. So rather than requiring the captured text to *be* the
+    /// message, this extracts the `TILOQ1.` token out of whatever text
+    /// was captured, tolerating extra surrounding text, whitespace, or
+    /// an imprecise selection.
     static func decryptionSource(selectedText: String?, sourceText: String) -> String? {
-        if let selectedText, selectedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
-            return selectedText
+        if let selectedText, let match = extractEncryptedMessage(from: selectedText) {
+            return match
         }
-        let trimmedSource = sourceText.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmedSource.isEmpty ? nil : sourceText
+        return extractEncryptedMessage(from: sourceText)
+    }
+
+    private static func extractEncryptedMessage(from text: String) -> String? {
+        guard let prefixRange = text.range(of: TiloqTextEncryption.messagePrefix) else { return nil }
+        let payloadAlphabet = CharacterSet(
+            charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+        )
+        var end = prefixRange.upperBound
+        while end < text.endIndex, String(text[end]).rangeOfCharacter(from: payloadAlphabet) != nil {
+            end = text.index(after: end)
+        }
+        guard end > prefixRange.upperBound else { return nil }
+        return String(text[prefixRange.lowerBound..<end])
     }
 
     /// The keyboard height in points.

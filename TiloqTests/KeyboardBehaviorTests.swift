@@ -72,6 +72,21 @@ struct KeyboardBehaviorTests {
         )
     }
 
+    @Test(
+        "Decryption extracts only the TILOQ1 token, ignoring surrounding text",
+        arguments: [
+            (selection: nil, source: "Hey check this out: TILOQ1.abcXYZ-12_3 lol", expected: "TILOQ1.abcXYZ-12_3"),
+            (selection: "Copy this TILOQ1.abcXYZ-12_3.", source: "unrelated", expected: "TILOQ1.abcXYZ-12_3"),
+            (selection: nil, source: "TILOQ1.first TILOQ1.second", expected: "TILOQ1.first"),
+            (selection: nil, source: "no message here", expected: nil)
+        ] as [(selection: String?, source: String, expected: String?)]
+    )
+    func decryptionIgnoresSurroundingText(selection: String?, source: String, expected: String?) {
+        #expect(
+            KeyboardBehavior.decryptionSource(selectedText: selection, sourceText: source) == expected
+        )
+    }
+
     @Test("Keyboard glass roles keep consistent surface metrics")
     func keyboardGlassMetrics() {
         #expect(KeyboardGlassRole.key.cornerRadius == 7)
