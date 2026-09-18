@@ -21,6 +21,9 @@ struct TypeKeyboardView: View {
     @State private var generatedText = ""
     @State private var encryptedText: String?
     @State private var decryptedText: String?
+    @State private var isShowingDecryptInput = false
+    @State private var decryptInputText = ""
+    @State private var decryptInputError: String?
     @State private var isGenerating = false
     @State private var typingSuggestions: [String] = []
     @State private var rgbPhase = 0.0
@@ -114,7 +117,7 @@ struct TypeKeyboardView: View {
             } else if let decryptedText {
                 ResultPanel(
                     action: nil,
-                    original: selectedText() ?? "",
+                    original: decryptInputText,
                     result: decryptedText,
                     isGenerating: false,
                     tone: $tone,
@@ -133,6 +136,26 @@ struct TypeKeyboardView: View {
                     titleOverride: "Decrypt",
                     originalLabelOverride: "Encrypted Text",
                     tintOverride: TypeTheme.grammar
+                )
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .move(edge: .bottom)),
+                    removal: .opacity
+                ))
+            } else if isShowingDecryptInput {
+                DecryptInputPanel(
+                    text: $decryptInputText,
+                    errorMessage: decryptInputError,
+                    onPaste: {
+                        decryptInputText = UIPasteboard.general.string ?? ""
+                        decryptInputError = nil
+                    },
+                    onDecrypt: attemptDecryptFromInput,
+                    onCancel: {
+                        Haptics.tap()
+                        isShowingDecryptInput = false
+                        decryptInputText = ""
+                        decryptInputError = nil
+                    }
                 )
                 .transition(.asymmetric(
                     insertion: .opacity.combined(with: .move(edge: .bottom)),
@@ -293,21 +316,20 @@ struct TypeKeyboardView: View {
                         Haptics.tap()
                         selectedAction = nil
                         encryptedText = nil
-                        if decryptedText == nil {
-                            generateDecryptionResult()
-                        } else {
-                            decryptedText = nil
-                        }
+                        decryptedText = nil
+                        decryptInputError = nil
+                        decryptInputText = UIPasteboard.general.string ?? ""
+                        isShowingDecryptInput = true
                     } label: {
                         toolbarLabel(
                             title: "Decrypt",
                             symbol: "lock.open.fill",
                             tint: TypeTheme.grammar,
-                            isSelected: decryptedText != nil
+                            isSelected: isShowingDecryptInput || decryptedText != nil
                         )
                     }
                     .buttonStyle(TactileButtonStyle(tint: TypeTheme.grammar))
-                    .accessibilityHint("Shows the decrypted contents of the selected TILOQ encrypted text")
+                    .accessibilityHint("Paste and decrypt a TILOQ encrypted message")
                 }
             }
         }
@@ -569,30 +591,28 @@ struct TypeKeyboardView: View {
         }
     }
 
-    private func generateDecryptionResult() {
+    private func attemptDecryptFromInput() {
         do {
             guard let keyText = TiloqEncryptionKeyStore.load() else {
-                showingActionBar = false
-                encryptionNotice = "Set key text in TILOQ Settings"
+                decryptInputError = "Set key text in TILOQ Settings"
                 return
             }
-            guard let original = KeyboardBehavior.encryptionSource(
-                selectedText: selectedText()
-            ) else {
-                showingActionBar = false
-                encryptionNotice = "Select text to decrypt"
+            let trimmed = decryptInputText.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard trimmed.isEmpty == false else {
+                decryptInputError = "Paste the encrypted text"
                 return
             }
             decryptedText = try TiloqTextEncryption.decrypt(
-                original,
+                trimmed,
                 keyText: keyText
             )
+            isShowingDecryptInput = false
+            decryptInputError = nil
             copied = false
-            encryptionNotice = nil
+            Haptics.success()
         } catch {
             decryptedText = nil
-            showingActionBar = false
-            encryptionNotice = error.localizedDescription
+            decryptInputError = error.localizedDescription
         }
     }
 
@@ -843,6 +863,81 @@ private struct ResultPanel: View {
         }
     }
 
+}
+
+private struct DecryptInputPanel: View {
+    @Binding var text: String
+    let errorMessage: String?
+    let onPaste: () -> Void
+    let onDecrypt: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Circle()
+                    .fill(TypeTheme.grammar)
+                    .frame(width: 8, height: 8)
+                Text("Decrypt")
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                Spacer()
+                Text("ON DEVICE")
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .tracking(1.5)
+                    .foregroundStyle(.secondary)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Encrypted Text")
+                    .font(.system(size: 12, design: .rounded))
+                    .foregroundStyle(.secondary)
+                TextField("TILOQ1…", text: $text, axis: .vertical)
+                    .font(.system(size: 13, design: .monospaced))
+                    .foregroundStyle(.white)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .lineLimit(3...6)
+                    .padding(10)
+                    .background(Color.white.opacity(0.06))
+                    .clipShape(.rect(cornerRadius: 8))
+            }
+
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.system(size: 12, design: .rounded))
+                    .foregroundStyle(.red)
+            } else {
+                Text("Copy a TILOQ1 message, then tap Decrypt — pasted automatically from your clipboard.")
+                    .font(.system(size: 11, design: .rounded))
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 0)
+
+            HStack(spacing: 8) {
+                Button("Decrypt", action: onDecrypt)
+                    .buttonStyle(ResultActionStyle(primary: true, tint: TypeTheme.grammar))
+                    .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
+                Button("Paste", action: onPaste)
+                    .buttonStyle(ResultActionStyle(primary: false, tint: TypeTheme.grammar))
+
+                Spacer(minLength: 0)
+
+                Button("Cancel", action: onCancel)
+                    .buttonStyle(ResultActionStyle(primary: false, tint: TypeTheme.grammar))
+            }
+        }
+        .padding(12)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .background(Color.clear)
+        .clipShape(.rect(cornerRadius: 10))
+        .keyboardGlass(.result, tint: TypeTheme.surface)
+        .overlay {
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(TypeTheme.grammar.opacity(0.3))
+        }
+    }
 }
 
 private struct ResultActionStyle: ButtonStyle {
