@@ -6,6 +6,9 @@ struct TiloqApp: App {
         WindowGroup {
             ContentView()
                 .preferredColorScheme(.dark)
+                .task {
+                    await SubscriptionManager.shared.start()
+                }
         }
     }
 }

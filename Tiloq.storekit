@@ -1,0 +1,51 @@
+{
+  "identifier" : "4F7206CD-069D-4FC9-BB5C-F18E3FCF8E36",
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : {
+    "_askToBuyEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_disableDialogs" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "0C005AEF-A90D-481E-9BDF-92A71FE76DBE",
+      "localizations" : [],
+      "name" : "TILOQ Plus",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "1.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "8EACA26A-314E-417A-8B45-5531EDE5587B",
+          "introductoryOffer" : {
+            "internalID" : "06FE6C93-0F3D-42F3-A952-87196434ACFE",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P2W"
+          },
+          "localizations" : [
+            {
+              "description" : "Unlocks RGB keys and custom photo backdrops. Every writing tool stays free.",
+              "displayName" : "TILOQ Plus",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.tiloq.app.plus.annual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "TILOQ Plus Annual",
+          "subscriptionGroupID" : "0C005AEF-A90D-481E-9BDF-92A71FE76DBE",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

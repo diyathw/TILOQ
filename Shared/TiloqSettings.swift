@@ -19,6 +19,18 @@ enum TiloqSettings {
     static let defaultToneKey = "defaultTone"
     static let encryptionEnabledKey = "encryptionEnabled"
     static let encryptionKeyTextKey = "encryptionKeyText"
+    static let isPlusSubscriberKey = "isPlusSubscriberEntitled"
+    static let debugForcePlusKey = "debugForcePlusUnlocked"
+    static let plusAnnualProductID = "com.tiloq.app.plus.annual"
+
+    static func hasPlusAccess(in defaults: UserDefaults = sharedDefaults) -> Bool {
+        #if DEBUG
+        if defaults.bool(forKey: debugForcePlusKey) {
+            return true
+        }
+        #endif
+        return defaults.bool(forKey: isPlusSubscriberKey)
+    }
 
     static var sharedDefaults: UserDefaults {
         UserDefaults(suiteName: appGroupIdentifier) ?? .standard

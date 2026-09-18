@@ -11,22 +11,47 @@ struct KeyboardAppearanceControls: View {
         TiloqSettings.keyboardBackdropKey,
         store: TiloqSettings.sharedDefaults
     ) private var backdropValue = KeyboardBackdropStyle.none.rawValue
+    @AppStorage(
+        TiloqSettings.isPlusSubscriberKey,
+        store: TiloqSettings.sharedDefaults
+    ) private var isPlusSubscriber = false
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var showsImportError = false
+    @State private var showsPaywall = false
+
+    private var hasPlusAccess: Bool {
+        TiloqSettings.hasPlusAccess()
+    }
 
     var body: some View {
         let isCustomSelected = backdropValue == KeyboardBackdropStyle.custom.rawValue
 
         VStack(alignment: .leading, spacing: 12) {
-            Toggle(isOn: $rgbLightingEnabled) {
+            Toggle(isOn: Binding(
+                get: { rgbLightingEnabled },
+                set: { newValue in
+                    if newValue && hasPlusAccess == false {
+                        showsPaywall = true
+                    } else {
+                        rgbLightingEnabled = newValue
+                    }
+                }
+            )) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("RGB Keys")
+                    HStack(spacing: 4) {
+                        Text("RGB Keys")
+                        if hasPlusAccess == false {
+                            Image(systemName: "lock.fill")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                     Text("Animated lighting and color around every key")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
-            .accessibilityHint("Adds gaming keyboard style lighting")
+            .accessibilityHint("Adds gaming keyboard style lighting. Requires TILOQ Plus.")
 
             Divider()
 
@@ -60,26 +85,7 @@ struct KeyboardAppearanceControls: View {
                         .accessibilityAddTraits(backdropValue == style.rawValue ? .isSelected : [])
                     }
 
-                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                        VStack(spacing: 6) {
-                            Image(systemName: "photo.on.rectangle")
-                                .font(.title3)
-                                .frame(width: 62, height: 46)
-                                .background(Color.white.opacity(0.07))
-                                .clipShape(.rect(cornerRadius: 8))
-                                .overlay {
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .stroke(
-                                            isCustomSelected ? TypeTheme.rewrite : Color.white.opacity(0.12),
-                                            lineWidth: isCustomSelected ? 2 : 1
-                                        )
-                                }
-                            Text("Choose Photo")
-                                .font(.caption2)
-                                .foregroundStyle(.primary)
-                        }
-                    }
-                    .accessibilityHint("Selects a private keyboard background image")
+                    choosePhotoControl(isCustomSelected: isCustomSelected)
                 }
                 .padding(.vertical, 2)
             }
@@ -97,11 +103,65 @@ struct KeyboardAppearanceControls: View {
         } message: {
             Text("Choose another image and try again.")
         }
+        .sheet(isPresented: $showsPaywall) {
+            PaywallView()
+        }
+    }
+
+    @ViewBuilder
+    private func choosePhotoControl(isCustomSelected: Bool) -> some View {
+        let label = VStack(spacing: 6) {
+            ZStack(alignment: .topTrailing) {
+                Image(systemName: "photo.on.rectangle")
+                    .font(.title3)
+                    .frame(width: 62, height: 46)
+                    .background(Color.white.opacity(0.07))
+                    .clipShape(.rect(cornerRadius: 8))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(
+                                isCustomSelected ? TypeTheme.rewrite : Color.white.opacity(0.12),
+                                lineWidth: isCustomSelected ? 2 : 1
+                            )
+                    }
+                if hasPlusAccess == false {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .padding(3)
+                        .background(TypeTheme.background, in: .circle)
+                        .offset(x: 4, y: -4)
+                }
+            }
+            Text("Choose Photo")
+                .font(.caption2)
+                .foregroundStyle(.primary)
+        }
+
+        if hasPlusAccess {
+            PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                label
+            }
+            .accessibilityHint("Selects a private keyboard background image")
+        } else {
+            Button {
+                showsPaywall = true
+            } label: {
+                label
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("Requires TILOQ Plus")
+        }
     }
 
     @MainActor
     private func importPhoto(_ item: PhotosPickerItem?) async {
         guard let item else { return }
+        guard hasPlusAccess else {
+            selectedPhoto = nil
+            showsPaywall = true
+            return
+        }
 
         do {
             guard let sourceData = try await item.loadTransferable(type: Data.self),

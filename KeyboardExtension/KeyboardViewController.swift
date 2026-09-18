@@ -37,6 +37,8 @@ final class KeyboardViewController: UIInputViewController {
 
         let host = UIHostingController(rootView: keyboard)
         host.view.backgroundColor = .black
+        host.view.clipsToBounds = true
+        view.clipsToBounds = true
         addChild(host)
         view.addSubview(host.view)
         host.view.translatesAutoresizingMaskIntoConstraints = false

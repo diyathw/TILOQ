@@ -119,9 +119,7 @@ struct TypeKeyboardView: View {
         .padding(.top, 8)
         .padding(.bottom, 12)
         .background {
-            KeyboardBackdropView(
-                style: KeyboardBackdropStyle(rawValue: backdropValue) ?? .none
-            )
+            KeyboardBackdropView(style: effectiveBackdropStyle)
         }
         .background {
             GeometryReader { proxy in
@@ -153,6 +151,10 @@ struct TypeKeyboardView: View {
         .onChange(of: numberRowEnabled) { _, _ in
             updatePreferredHeight()
         }
+        .onChange(of: tone) { _, _ in
+            guard let action = selectedAction, action == .rewrite || action == .improve else { return }
+            generate(for: action)
+        }
         .onChange(of: autoCapitalizationEnabled) { _, _ in
             updateAutomaticShift()
         }
@@ -179,7 +181,7 @@ struct TypeKeyboardView: View {
                 KeyboardSuggestionBar(
                     suggestions: layer == .letters ? typingSuggestions : [],
                     isEnabled: suggestionsEnabled,
-                    rgbLightingEnabled: rgbLightingEnabled,
+                    rgbLightingEnabled: rgbLightingActive,
                     rgbPhase: rgbPhase,
                     statusMessage: encryptionNotice,
                     onSelect: selectSuggestion
@@ -249,17 +251,13 @@ struct TypeKeyboardView: View {
                 }
             }
         }
-        .onChange(of: tone) { _, _ in
-            guard selectedAction == .rewrite else { return }
-            generate(for: .rewrite)
-        }
     }
 
     private var keyRows: some View {
         VStack(spacing: 8) {
             if layer == .letters && numberRowEnabled {
                 KeyboardNumberRow(
-                    rgbLightingEnabled: rgbLightingEnabled,
+                    rgbLightingEnabled: rgbLightingActive,
                     rgbPhase: rgbPhase,
                     showsKeyPreview: keyPreviewEnabled,
                     isEnabled: characterKeysEnabled
@@ -279,7 +277,7 @@ struct TypeKeyboardView: View {
                                 isSystemImage: true,
                                 kind: .modifier,
                                 isSelected: shiftState != .off,
-                                rgbLightingEnabled: rgbLightingEnabled,
+                                rgbLightingEnabled: rgbLightingActive,
                                 rgbPhase: rgbPhase,
                                 action: handleShift
                             )
@@ -288,7 +286,7 @@ struct TypeKeyboardView: View {
                             KeyButton(
                                 label: layer == .numbers ? "#+=" : "123",
                                 kind: .modifier,
-                                rgbLightingEnabled: rgbLightingEnabled,
+                                rgbLightingEnabled: rgbLightingActive,
                                 rgbPhase: rgbPhase
                             ) {
                                 layer = layer == .numbers ? .symbols : .numbers
@@ -302,7 +300,7 @@ struct TypeKeyboardView: View {
                         KeyButton(
                             label: value,
                             isEnabled: characterKeysEnabled,
-                            rgbLightingEnabled: rgbLightingEnabled,
+                            rgbLightingEnabled: rgbLightingActive,
                             rgbPhase: rgbPhase,
                             showsKeyPreview: keyPreviewEnabled,
                             alternateCharacters: KeyboardAlternates.characters(for: value),
@@ -314,7 +312,7 @@ struct TypeKeyboardView: View {
 
                     if index == 2 {
                         RepeatingDeleteKey(
-                            rgbLightingEnabled: rgbLightingEnabled,
+                            rgbLightingEnabled: rgbLightingActive,
                             rgbPhase: rgbPhase
                         ) {
                             perform([.deleteBackward])
@@ -329,7 +327,7 @@ struct TypeKeyboardView: View {
                 KeyButton(
                     label: layer == .letters ? "123" : "ABC",
                     kind: .modifier,
-                    rgbLightingEnabled: rgbLightingEnabled,
+                    rgbLightingEnabled: rgbLightingActive,
                     rgbPhase: rgbPhase
                 ) {
                     layer = layer == .letters ? .numbers : .letters
@@ -345,7 +343,7 @@ struct TypeKeyboardView: View {
                         accessibilityLabel: "Next Keyboard",
                         isSystemImage: true,
                         kind: .modifier,
-                        rgbLightingEnabled: rgbLightingEnabled,
+                        rgbLightingEnabled: rgbLightingActive,
                         rgbPhase: rgbPhase,
                         action: onNextKeyboard
                     )
@@ -356,7 +354,7 @@ struct TypeKeyboardView: View {
                     KeyButton(
                         label: contextualKey,
                         kind: .modifier,
-                        rgbLightingEnabled: rgbLightingEnabled,
+                        rgbLightingEnabled: rgbLightingActive,
                         rgbPhase: rgbPhase
                     ) {
                         perform([.insert(contextualKey)])
@@ -365,7 +363,7 @@ struct TypeKeyboardView: View {
                 }
 
                 SpaceKey(
-                    rgbLightingEnabled: rgbLightingEnabled,
+                    rgbLightingEnabled: rgbLightingActive,
                     rgbPhase: rgbPhase,
                     onSpace: insertSpace,
                     onMoveCursor: { perform([.moveCursor($0)]) },
@@ -374,7 +372,7 @@ struct TypeKeyboardView: View {
                 KeyButton(
                     label: returnKeyLabel(),
                     kind: .modifier,
-                    rgbLightingEnabled: rgbLightingEnabled,
+                    rgbLightingEnabled: rgbLightingActive,
                     rgbPhase: rgbPhase
                 ) {
                     perform([.insert("\n")])
@@ -384,13 +382,13 @@ struct TypeKeyboardView: View {
             }
         }
         .background {
-            if rgbLightingEnabled {
+            if rgbLightingActive {
                 RGBLightingBackdrop(phase: rgbPhase)
                     .padding(-3)
                     .transition(.opacity)
             }
         }
-        .animation(.easeInOut(duration: 0.25), value: rgbLightingEnabled)
+        .animation(.easeInOut(duration: 0.25), value: rgbLightingActive)
         .animation(.spring(response: 0.3, dampingFraction: 0.86), value: layer)
     }
 
@@ -410,6 +408,16 @@ struct TypeKeyboardView: View {
         )
     }
 
+    private var rgbLightingActive: Bool {
+        rgbLightingEnabled && TiloqSettings.hasPlusAccess()
+    }
+
+    private var effectiveBackdropStyle: KeyboardBackdropStyle {
+        let style = KeyboardBackdropStyle(rawValue: backdropValue) ?? .none
+        guard style == .custom, TiloqSettings.hasPlusAccess() == false else { return style }
+        return .none
+    }
+
     private func select(_ action: AIAction) {
         Haptics.tap()
         copied = false
@@ -417,6 +425,7 @@ struct TypeKeyboardView: View {
         encryptedText = nil
         guard LocalAIEngine.state == .ready else {
             selectedAction = nil
+            showingActionBar = false
             encryptionNotice = LocalAIEngine.state.label
             return
         }
@@ -452,7 +461,7 @@ struct TypeKeyboardView: View {
             tint: isSelected ? tint : TypeTheme.elevated
         )
         .overlay {
-            if rgbLightingEnabled {
+            if rgbLightingActive {
                 RoundedRectangle(cornerRadius: 10)
                     .stroke(Color.red, lineWidth: 1.1)
                     .hueRotation(.degrees(
@@ -469,16 +478,19 @@ struct TypeKeyboardView: View {
     private func generateEncryptionResult() {
         do {
             guard let keyText = TiloqEncryptionKeyStore.load() else {
+                showingActionBar = false
                 encryptionNotice = "Set key text in TILOQ Settings"
                 return
             }
             guard let original = KeyboardBehavior.encryptionSource(
                 selectedText: selectedText()
             ) else {
+                showingActionBar = false
                 encryptionNotice = "Select text to encrypt"
                 return
             }
             guard original.hasPrefix(TiloqTextEncryption.messagePrefix) == false else {
+                showingActionBar = false
                 encryptionNotice = "This text is already encrypted"
                 return
             }
@@ -490,12 +502,13 @@ struct TypeKeyboardView: View {
             encryptionNotice = nil
         } catch {
             encryptedText = nil
+            showingActionBar = false
             encryptionNotice = error.localizedDescription
         }
     }
 
     private func updateRGBAnimation() {
-        guard rgbLightingEnabled && reduceMotion == false else {
+        guard rgbLightingActive && reduceMotion == false else {
             var transaction = Transaction()
             transaction.disablesAnimations = true
             withTransaction(transaction) {

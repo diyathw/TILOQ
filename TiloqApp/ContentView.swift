@@ -119,6 +119,13 @@ private struct SettingsView: View {
     private var hapticsEnabled = true
     @AppStorage(TiloqSettings.defaultToneKey, store: TiloqSettings.sharedDefaults)
     private var defaultTone = RewriteTone.casual.rawValue
+    @AppStorage(TiloqSettings.isPlusSubscriberKey, store: TiloqSettings.sharedDefaults)
+    private var isPlusSubscriber = false
+    #if DEBUG
+    @AppStorage(TiloqSettings.debugForcePlusKey, store: TiloqSettings.sharedDefaults)
+    private var debugForcePlus = false
+    #endif
+    @State private var showsPaywall = false
 
     var body: some View {
         NavigationStack {
@@ -139,6 +146,9 @@ private struct SettingsView: View {
                 case .privacy:
                     PrivacyPolicyView()
                 }
+            }
+            .sheet(isPresented: $showsPaywall) {
+                PaywallView()
             }
         }
     }
@@ -174,6 +184,29 @@ private struct SettingsView: View {
 
     private var settings: some View {
         VStack(alignment: .leading, spacing: 24) {
+            SettingsSection(title: "TILOQ PLUS") {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(isPlusSubscriber ? "Active" : "Free")
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        Text("Unlocks RGB keys and custom photo backdrops")
+                            .font(.system(size: 12, design: .rounded))
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    if isPlusSubscriber == false {
+                        Button("Upgrade") { showsPaywall = true }
+                            .buttonStyle(.borderedProminent)
+                            .tint(TypeTheme.rewrite)
+                            .foregroundStyle(.black)
+                    }
+                }
+                #if DEBUG
+                Divider().padding(.leading, 16)
+                Toggle("Debug: Force Plus Unlocked", isOn: $debugForcePlus)
+                #endif
+            }
+
             SettingsSection(title: "AI TOOLS") {
                 Toggle("Rewrite", isOn: $rewriteEnabled)
                 Divider().padding(.leading, 16)

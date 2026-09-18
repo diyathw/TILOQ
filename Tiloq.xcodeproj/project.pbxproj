@@ -67,6 +67,9 @@
 		A1000000000000000000003A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000002A /* PrivacyInfo.xcprivacy */; };
 		A1000000000000000000003B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000002B /* PrivacyInfo.xcprivacy */; };
 		A1000000000000000000003C /* PrivacyPolicyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000002C /* PrivacyPolicyView.swift */; };
+		A1000000000000000000003D /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000002D /* SubscriptionManager.swift */; };
+		A1000000000000000000003E /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000002E /* PaywallView.swift */; };
+		A1000000000000000000003F /* TiloqSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000030 /* TiloqSettingsTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -145,6 +148,10 @@
 		B1000000000000000000002A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		B1000000000000000000002B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		B1000000000000000000002C /* PrivacyPolicyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPolicyView.swift; sourceTree = "<group>"; };
+		B1000000000000000000002D /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
+		B1000000000000000000002E /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		B1000000000000000000002F /* Tiloq.storekit */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Tiloq.storekit; sourceTree = "<group>"; };
+		B10000000000000000000030 /* TiloqSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiloqSettingsTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -180,6 +187,7 @@
 				D10000000000000000000005 /* KeyboardExtension */,
 				D10000000000000000000007 /* TiloqTests */,
 				D10000000000000000000006 /* Products */,
+				B1000000000000000000002F /* Tiloq.storekit */,
 			);
 			sourceTree = "<group>";
 		};
@@ -200,6 +208,8 @@
 				B10000000000000000000029 /* DecryptionView.swift */,
 				B1000000000000000000002A /* PrivacyInfo.xcprivacy */,
 				B1000000000000000000002C /* PrivacyPolicyView.swift */,
+				B1000000000000000000002D /* SubscriptionManager.swift */,
+				B1000000000000000000002E /* PaywallView.swift */,
 			);
 			path = TiloqApp;
 			sourceTree = "<group>";
@@ -258,6 +268,7 @@
 				B1000000000000000000000F /* KeyboardBehaviorTests.swift */,
 				B10000000000000000000016 /* SetupGuideContentTests.swift */,
 				B10000000000000000000024 /* TiloqTextEncryptionTests.swift */,
+				B10000000000000000000030 /* TiloqSettingsTests.swift */,
 			);
 			path = TiloqTests;
 			sourceTree = "<group>";
@@ -434,6 +445,8 @@
 				A10000000000000000000038 /* EncryptionSettingsControls.swift in Sources */,
 				A10000000000000000000039 /* DecryptionView.swift in Sources */,
 				A1000000000000000000003C /* PrivacyPolicyView.swift in Sources */,
+				A1000000000000000000003D /* SubscriptionManager.swift in Sources */,
+				A1000000000000000000003E /* PaywallView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -473,6 +486,7 @@
 				A10000000000000000000010 /* KeyboardBehaviorTests.swift in Sources */,
 				A10000000000000000000018 /* SetupGuideContentTests.swift in Sources */,
 				A10000000000000000000031 /* TiloqTextEncryptionTests.swift in Sources */,
+				A1000000000000000000003F /* TiloqSettingsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
