@@ -50,6 +50,7 @@ enum KeyboardBehavior {
     enum ToolbarAction: Hashable {
         case ai(AIAction)
         case encrypt
+        case decrypt
     }
 
     static func toolbarActions(
@@ -64,6 +65,7 @@ enum KeyboardBehavior {
         if improveEnabled { actions.append(.ai(.improve)) }
         if encryptionEnabled {
             actions.append(.encrypt)
+            actions.append(.decrypt)
         }
         return actions
     }

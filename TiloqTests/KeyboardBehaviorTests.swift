@@ -15,7 +15,8 @@ struct KeyboardBehaviorTests {
                 KeyboardBehavior.ToolbarAction.ai(.rewrite),
                 .ai(.grammar),
                 .ai(.improve),
-                .encrypt
+                .encrypt,
+                .decrypt
             ])
         ]
     )
@@ -36,7 +37,7 @@ struct KeyboardBehaviorTests {
                 grammarEnabled: true,
                 improveEnabled: false,
                 encryptionEnabled: true
-            ) == [.ai(.grammar), .encrypt]
+            ) == [.ai(.grammar), .encrypt, .decrypt]
         )
     }
 

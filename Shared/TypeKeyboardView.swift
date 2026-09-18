@@ -20,6 +20,7 @@ struct TypeKeyboardView: View {
     @State private var copied = false
     @State private var generatedText = ""
     @State private var encryptedText: String?
+    @State private var decryptedText: String?
     @State private var isGenerating = false
     @State private var typingSuggestions: [String] = []
     @State private var rgbPhase = 0.0
@@ -110,6 +111,33 @@ struct TypeKeyboardView: View {
                     insertion: .opacity.combined(with: .move(edge: .bottom)),
                     removal: .opacity
                 ))
+            } else if let decryptedText {
+                ResultPanel(
+                    action: nil,
+                    original: selectedText() ?? "",
+                    result: decryptedText,
+                    isGenerating: false,
+                    tone: $tone,
+                    copied: $copied,
+                    onInsert: {
+                        onSuggestion(decryptedText)
+                        Haptics.success()
+                        self.decryptedText = nil
+                        refreshSuggestionsSoon()
+                    },
+                    onCancel: {
+                        Haptics.tap()
+                        self.decryptedText = nil
+                        refreshSuggestionsSoon()
+                    },
+                    titleOverride: "Decrypt",
+                    originalLabelOverride: "Encrypted Text",
+                    tintOverride: TypeTheme.grammar
+                )
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .move(edge: .bottom)),
+                    removal: .opacity
+                ))
             } else {
                 controlBar
                 keyRows
@@ -132,6 +160,7 @@ struct TypeKeyboardView: View {
         }
         .animation(.spring(response: 0.34, dampingFraction: 0.82), value: selectedAction)
         .animation(.spring(response: 0.34, dampingFraction: 0.82), value: encryptedText != nil)
+        .animation(.spring(response: 0.34, dampingFraction: 0.82), value: decryptedText != nil)
         .task {
             tone = RewriteTone(rawValue: defaultToneValue) ?? .casual
             updateAutomaticShift()
@@ -170,6 +199,7 @@ struct TypeKeyboardView: View {
         .onChange(of: encryptionEnabled) { _, _ in
             encryptionNotice = nil
             encryptedText = nil
+            decryptedText = nil
         }
     }
 
@@ -233,6 +263,7 @@ struct TypeKeyboardView: View {
                     Button {
                         Haptics.tap()
                         selectedAction = nil
+                        decryptedText = nil
                         if encryptedText == nil {
                             generateEncryptionResult()
                         } else {
@@ -248,6 +279,27 @@ struct TypeKeyboardView: View {
                     }
                     .buttonStyle(TactileButtonStyle(tint: TypeTheme.encryption))
                     .accessibilityHint("Shows an encrypted preview of the selected text")
+
+                case .decrypt:
+                    Button {
+                        Haptics.tap()
+                        selectedAction = nil
+                        encryptedText = nil
+                        if decryptedText == nil {
+                            generateDecryptionResult()
+                        } else {
+                            decryptedText = nil
+                        }
+                    } label: {
+                        toolbarLabel(
+                            title: "Decrypt",
+                            symbol: "lock.open.fill",
+                            tint: TypeTheme.grammar,
+                            isSelected: decryptedText != nil
+                        )
+                    }
+                    .buttonStyle(TactileButtonStyle(tint: TypeTheme.grammar))
+                    .accessibilityHint("Shows the decrypted contents of the selected TILOQ encrypted text")
                 }
             }
         }
@@ -423,6 +475,7 @@ struct TypeKeyboardView: View {
         copied = false
         encryptionNotice = nil
         encryptedText = nil
+        decryptedText = nil
         guard LocalAIEngine.state == .ready else {
             selectedAction = nil
             showingActionBar = false
@@ -502,6 +555,33 @@ struct TypeKeyboardView: View {
             encryptionNotice = nil
         } catch {
             encryptedText = nil
+            showingActionBar = false
+            encryptionNotice = error.localizedDescription
+        }
+    }
+
+    private func generateDecryptionResult() {
+        do {
+            guard let keyText = TiloqEncryptionKeyStore.load() else {
+                showingActionBar = false
+                encryptionNotice = "Set key text in TILOQ Settings"
+                return
+            }
+            guard let original = KeyboardBehavior.encryptionSource(
+                selectedText: selectedText()
+            ) else {
+                showingActionBar = false
+                encryptionNotice = "Select text to decrypt"
+                return
+            }
+            decryptedText = try TiloqTextEncryption.decrypt(
+                original,
+                keyText: keyText
+            )
+            copied = false
+            encryptionNotice = nil
+        } catch {
+            decryptedText = nil
             showingActionBar = false
             encryptionNotice = error.localizedDescription
         }
@@ -638,12 +718,16 @@ private struct ResultPanel: View {
     @Binding var copied: Bool
     let onInsert: () -> Void
     let onCancel: () -> Void
+    var titleOverride: String? = nil
+    var originalLabelOverride: String? = nil
+    var tintOverride: Color? = nil
 
     private var tint: Color {
-        action?.tint ?? TypeTheme.encryption
+        tintOverride ?? action?.tint ?? TypeTheme.encryption
     }
 
     private var title: String {
+        if let titleOverride { return titleOverride }
         guard let action else { return "Encrypt" }
         return action == .grammar ? "Grammar Fix" : action.rawValue
     }
@@ -665,7 +749,7 @@ private struct ResultPanel: View {
 
             if action == .grammar || action == nil {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(action == nil ? "Selected Text" : "Original")
+                    Text(originalLabelOverride ?? (action == nil ? "Selected Text" : "Original"))
                         .foregroundStyle(.secondary)
                     Text(original.isEmpty ? TypeCopy.original : original)
                         .foregroundStyle(.secondary)
